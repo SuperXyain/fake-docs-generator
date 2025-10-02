@@ -1,0 +1,195 @@
+
+from faker import Faker
+import random
+from datetime import datetime, timedelta
+from reportlab.lib.styles import ParagraphStyle
+from reportlab.lib import colors
+from reportlab.lib.enums import TA_LEFT, TA_RIGHT, TA_CENTER
+
+fake = Faker('en_PH')
+
+class DocumentGenerator:
+    """Base class for document generators."""
+
+    def __init__(self, realism_level='high'):
+        """
+        Initialize document generator.
+
+        Args:
+            realism_level: 'high', 'medium', or 'low' - controls how realistic the document is
+        """
+        self.realism_level = realism_level
+        self.fake = fake
+
+    def get_random_name(self):
+        """Generate a random Filipino name."""
+        return self.fake.name()
+
+    def get_random_address(self):
+        """Generate a random Filipino address."""
+        street_num = random.randint(1, 999)
+        street = self.fake.street_name().upper()
+        barangay = random.choice([
+            'KAUNLARAN', 'STA. LUCIA', 'UGONG', 'KAPITOLYO',
+            'VALENCIA', 'PINAGBUHATAN', 'BAGUMBAYAN', 'RIZAL'
+        ])
+        city = random.choice([
+            'Pasig City', 'Quezon City', 'Makati City', 'Manila',
+            'Mandaluyong City', 'Taguig City', 'Muntinlupa City', 'Parañaque City'
+        ])
+        return f"{street_num} {street}, BARANGAY {barangay}\n{city.upper()}\nMETRO MANILA"
+
+    def get_random_date_range(self, days=30):
+        """
+        Generate random billing period dates.
+
+        Args:
+            days: Number of days in the billing period
+
+        Returns:
+            Tuple of (start_date, end_date, due_date)
+        """
+        year = random.choice([2022, 2023, 2024])
+        month = random.randint(1, 12)
+        start_day = random.randint(1, 10)
+
+        start_date = datetime(year, month, start_day)
+
+        # Add realistic variation based on realism level
+        if self.realism_level == 'high':
+            end_date = start_date + timedelta(days=days)
+            due_date = end_date + timedelta(days=random.randint(10, 12))
+        elif self.realism_level == 'medium':
+            # Slight inconsistency in billing period
+            end_date = start_date + timedelta(days=random.randint(days-2, days+2))
+            due_date = end_date + timedelta(days=random.randint(8, 14))
+        else:  # low realism
+            # Obvious inconsistencies
+            end_date = start_date + timedelta(days=random.randint(20, 40))
+            due_date = end_date + timedelta(days=random.randint(5, 20))
+
+        return start_date, end_date, due_date
+
+    def introduce_calculation_error(self, correct_value, error_type='none'):
+        """
+        Optionally introduce calculation errors for testing.
+
+        Args:
+            correct_value: The correct calculated value
+            error_type: 'none', 'small', 'medium', 'large'
+
+        Returns:
+            Value with or without error
+        """
+        if error_type == 'none':
+            return correct_value
+        elif error_type == 'small':
+            # Off by a few pesos
+            return correct_value + random.uniform(-5, 5)
+        elif error_type == 'medium':
+            # Off by 1-5%
+            return correct_value * random.uniform(0.95, 1.05)
+        else:  # large
+            # Obviously wrong
+            return correct_value * random.uniform(0.7, 1.3)
+
+    def format_currency(self, amount):
+        """Format amount as Philippine Peso."""
+        return f"₱ {amount:,.2f}"
+
+    def get_paragraph_style(self, name, parent, **kwargs):
+        """Create a custom paragraph style."""
+        return ParagraphStyle(name, parent=parent, **kwargs)
+
+
+def generate_random_transactions(num_transactions=10, starting_balance=50000):
+    """
+    Generate realistic bank transactions.
+
+    Args:
+        num_transactions: Number of transactions to generate
+        starting_balance: Starting account balance
+
+    Returns:
+        List of transaction dicts with date, description, debit, credit, balance
+    """
+    transactions = []
+    balance = starting_balance
+
+    # Transaction types
+    debit_types = [
+        "ATM WITHDRAWAL",
+        "ONLINE PURCHASE",
+        "BILLS PAYMENT",
+        "INTERBANK TRANSFER",
+        "CHECK PAYMENT",
+        "POS PURCHASE",
+        "ANNUAL FEE",
+        "SERVICE CHARGE"
+    ]
+
+    credit_types = [
+        "SALARY CREDIT",
+        "FUND TRANSFER",
+        "CASH DEPOSIT",
+        "CHECK DEPOSIT",
+        "INTEREST CREDIT",
+        "REFUND"
+    ]
+
+    # Generate transactions over the past month
+    current_date = datetime.now()
+
+    for i in range(num_transactions):
+        # Random date within the month
+        days_ago = random.randint(1, 30)
+        trans_date = current_date - timedelta(days=days_ago)
+
+        # Decide if debit or credit (70% debit, 30% credit)
+        is_debit = random.random() < 0.7
+
+        if is_debit:
+            trans_type = random.choice(debit_types)
+            amount = round(random.uniform(100, 5000), 2)
+            debit = amount
+            credit = 0
+            balance -= amount
+
+            # Add merchant/payee info for some types
+            if "PURCHASE" in trans_type:
+                merchant = random.choice(["SHOPEE", "LAZADA", "SM STORE", "GRAB", "FOODPANDA"])
+                description = f"{trans_type} - {merchant}"
+            elif trans_type == "BILLS PAYMENT":
+                biller = random.choice(["MERALCO", "PLDT", "CONVERGE", "MAYNILAD"])
+                description = f"{trans_type} - {biller}"
+            else:
+                description = trans_type
+        else:
+            trans_type = random.choice(credit_types)
+            amount = round(random.uniform(500, 20000), 2)
+            debit = 0
+            credit = amount
+            balance += amount
+            description = trans_type
+
+        transactions.append({
+            'date': trans_date.strftime('%m/%d/%Y'),
+            'description': description,
+            'debit': debit,
+            'credit': credit,
+            'balance': round(balance, 2)
+        })
+
+    # Sort by date (oldest first)
+    transactions.sort(key=lambda x: datetime.strptime(x['date'], '%m/%d/%Y'))
+
+    # Recalculate balances to be accurate
+    balance = starting_balance
+    for trans in transactions:
+        if trans['debit'] > 0:
+            balance -= trans['debit']
+        else:
+            balance += trans['credit']
+        trans['balance'] = round(balance, 2)
+
+    return transactions

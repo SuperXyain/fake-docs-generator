@@ -62,16 +62,7 @@ class BPIGenerator(DocumentGenerator):
         total_credits = sum(t['credit'] for t in transactions)
         total_debits = sum(t['debit'] for t in transactions)
         ending_balance = transactions[-1]['balance'] if transactions else starting_balance
-
-        # Introduce errors based on realism level
-        if self.realism_level == 'low':
-            # Obvious error: wrong ending balance
-            display_ending_balance = ending_balance + random.uniform(100, 500)
-        elif self.realism_level == 'medium':
-            # Subtle error: slight miscalculation
-            display_ending_balance = ending_balance + random.uniform(1, 20)
-        else:
-            display_ending_balance = ending_balance
+        display_ending_balance = ending_balance
 
         # Create PDF
         doc = SimpleDocTemplate(filename, pagesize=letter, rightMargin=50, leftMargin=50,
@@ -285,14 +276,13 @@ If you have received this statement in error, please contact BPI immediately.</i
         return filename
 
 
-def generate_bpi_statement(filename, statement_num=1, realism_level='high'):
+def generate_bpi_statement(filename, statement_num=1):
     """
     Generate a BPI bank statement.
 
     Args:
         filename: Output PDF filename
         statement_num: Statement number (for unique identifiers)
-        realism_level: 'high', 'medium', or 'low'
     """
-    generator = BPIGenerator(realism_level=realism_level)
+    generator = BPIGenerator()
     return generator.generate_statement(filename, statement_num)

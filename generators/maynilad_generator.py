@@ -96,14 +96,6 @@ class MayniladGenerator(DocumentGenerator):
         # Total amount due
         total_amount_due = round(total_current_charges_before_tax + govt_taxes + previous_unpaid, 2)
 
-        # Introduce errors based on realism level
-        if self.realism_level == 'low':
-            # Obvious calculation error
-            total_amount_due += round(random.uniform(100, 300), 2)
-        elif self.realism_level == 'medium':
-            # Subtle calculation error
-            total_amount_due += round(random.uniform(10, 30), 2)
-
         # Payment history
         payment_history = []
         if random.random() > 0.3:  # 70% chance of having payment history
@@ -291,14 +283,13 @@ customer.helpdesk@mayniladwater.com.ph, or follow us on social media accounts (T
         return filename
 
 
-def generate_maynilad_bill(filename, bill_num=1, realism_level='high'):
+def generate_maynilad_bill(filename, bill_num=1):
     """
     Generate a Maynilad water bill.
 
     Args:
         filename: Output PDF filename
         bill_num: Bill number (for unique identifiers)
-        realism_level: 'high', 'medium', or 'low'
     """
-    generator = MayniladGenerator(realism_level=realism_level)
+    generator = MayniladGenerator()
     return generator.generate_bill(filename, bill_num)

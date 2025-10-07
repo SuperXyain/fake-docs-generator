@@ -117,16 +117,6 @@ class MeralcoGenerator(DocumentGenerator):
 
         charges_subtotal = generation + transmission + system_loss + distribution + subsidies + govt_taxes + universal_charges + fit_all
 
-        # Introduce errors based on realism level
-        if self.realism_level == 'low':
-            # Obvious calculation error
-            error_amount = round(random.uniform(50, 200), 2)
-            charges_subtotal += error_amount
-        elif self.realism_level == 'medium':
-            # Subtle calculation error
-            error_amount = round(random.uniform(5, 20), 2)
-            charges_subtotal += error_amount
-
         # Add remaining balance
         remaining_balance = round(random.uniform(0, 2000), 2) if random.random() > 0.5 else 0.0
 
@@ -495,14 +485,13 @@ fb.com/meralco | @meralco | Hotline 16211 | customercare@meralco.com.ph"""
         return filename
 
 
-def generate_meralco_bill(filename, bill_num=1, realism_level='high'):
+def generate_meralco_bill(filename, bill_num=1):
     """
     Generate a MERALCO electricity bill.
 
     Args:
         filename: Output PDF filename
         bill_num: Bill number (for unique temp files)
-        realism_level: 'high', 'medium', or 'low'
     """
-    generator = MeralcoGenerator(realism_level=realism_level)
+    generator = MeralcoGenerator()
     return generator.generate_bill(filename, bill_num)

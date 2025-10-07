@@ -79,14 +79,6 @@ class GlobeGenerator(DocumentGenerator):
         # Total amount to pay
         total_amount = plan_amount
 
-        # Introduce errors based on realism level
-        if self.realism_level == 'low':
-            # Obvious calculation error
-            total_amount += round(random.uniform(50, 200), 2)
-        elif self.realism_level == 'medium':
-            # Subtle calculation error
-            total_amount += round(random.uniform(5, 20), 2)
-
         # Payment details
         payment_date = start_date - timedelta(days=random.randint(1, 5))
         payment_reference = f"GPNC{random.randint(1000000, 9999999)}OR{random.randint(1000000, 9999999)}"
@@ -326,14 +318,13 @@ to the Credit Information Corp. (CIC), a state-run agency, on a monthly basis.<b
         return filename
 
 
-def generate_globe_bill(filename, bill_num=1, realism_level='high'):
+def generate_globe_bill(filename, bill_num=1):
     """
     Generate a Globe Telecom bill.
 
     Args:
         filename: Output PDF filename
         bill_num: Bill number (for unique identifiers)
-        realism_level: 'high', 'medium', or 'low'
     """
-    generator = GlobeGenerator(realism_level=realism_level)
+    generator = GlobeGenerator()
     return generator.generate_bill(filename, bill_num)

@@ -6,7 +6,7 @@ from datetime import datetime
 import io
 import csv
 
-from generators import generate_meralco_bill, generate_bpi_statement, generate_maynilad_bill, generate_globe_bill, generate_bir_certificate
+from generators import generate_meralco_bill, generate_bpi_statement, generate_maynilad_bill, generate_globe_bill, generate_bir_certificate, generate_coe
 
 # Ensure output directory exists
 os.makedirs('outputs', exist_ok=True)
@@ -23,7 +23,7 @@ def create_zip_file(files):
 def create_metadata_csv(metadata):
     """Create CSV metadata file."""
     csv_buffer = io.StringIO()
-    writer = csv.DictWriter(csv_buffer, fieldnames=['filename', 'doc_type', 'realism_level', 'generated_at'])
+    writer = csv.DictWriter(csv_buffer, fieldnames=['filename', 'doc_type', 'generated_at'])
     writer.writeheader()
     writer.writerows(metadata)
     return csv_buffer.getvalue()
@@ -39,19 +39,12 @@ def main_page():
     # Sidebar for configuration
     with st.sidebar:
         st.header("⚙️ Configuration")
+        st.info("""
+        **Document Generator**
 
-        realism_level = st.select_slider(
-            "Realism Level",
-            options=['Low', 'Medium', 'High'],
-            value='High',
-            help="High = Hard to detect (realistic), Low = Easy to detect (obvious fakes)"
-        )
+        Generate realistic fake documents for testing your AI fraud detection system.
 
-        st.info(f"""
-        **Realism Levels:**
-        - **High**: Maximum realism, subtle inconsistencies
-        - **Medium**: Moderate realism, some noticeable errors
-        - **Low**: Obvious fakes, clear red flags
+        All documents are generated with consistent, high-quality output.
         """)
 
     # Main content
@@ -61,7 +54,7 @@ def main_page():
         st.header("📄 Document Type")
         doc_type = st.selectbox(
             "Select Document Type",
-            ("MERALCO Bill", "Maynilad Water Bill", "Globe Telecom Bill", "BPI Bank Statement", "BIR Tax Exemption Certificate"),
+            ("MERALCO Bill", "Maynilad Water Bill", "Globe Telecom Bill", "BPI Bank Statement", "BIR Tax Exemption Certificate", "Certificate of Employment"),
             key="main_selectbox"
         )
 
@@ -89,11 +82,6 @@ def main_page():
             - Environmental impact section
             - Payment instructions
             - MERALCO branding and logo
-
-            **Fraud indicators (based on realism level):**
-            - Calculation errors in totals
-            - Date inconsistencies
-            - Format variations
             """)
     elif doc_type == "Maynilad Water Bill":
         with st.expander("ℹ️ About Maynilad Water Bills"):
@@ -106,11 +94,6 @@ def main_page():
             - FCDA and environmental charges
             - Payment history (if applicable)
             - Government taxes breakdown
-
-            **Fraud indicators (based on realism level):**
-            - Calculation errors in totals
-            - Meter reading inconsistencies
-            - Format variations
             """)
     elif doc_type == "Globe Telecom Bill":
         with st.expander("ℹ️ About Globe Telecom Bills"):
@@ -123,11 +106,6 @@ def main_page():
             - VAT breakdown
             - Globe branding and colors
             - Payment channel information
-
-            **Fraud indicators (based on realism level):**
-            - Calculation errors in totals
-            - VAT computation errors
-            - Format variations
             """)
     elif doc_type == "BPI Bank Statement":
         with st.expander("ℹ️ About BPI Bank Statements"):
@@ -139,13 +117,8 @@ def main_page():
             - Transaction history with running balance
             - Account summary (credits, debits, balances)
             - BPI branding
-
-            **Fraud indicators (based on realism level):**
-            - Balance calculation errors
-            - Transaction inconsistencies
-            - Format variations
             """)
-    else:  # BIR Tax Exemption Certificate
+    elif doc_type == "BIR Tax Exemption Certificate":
         with st.expander("ℹ️ About BIR Tax Exemption Certificates"):
             st.write("""
             **Generated BIR certificates include:**
@@ -157,11 +130,19 @@ def main_page():
             - Validity period (5 years)
             - Regional Director signature
             - Official BIR letterhead and formatting
-
-            **Fraud indicators (based on realism level):**
-            - Date inconsistencies
-            - Format variations
-            - Organization details errors
+            """)
+    else:  # Certificate of Employment
+        with st.expander("ℹ️ About Certificate of Employment"):
+            st.write("""
+            **Generated COE documents include:**
+            - Company letterhead and information
+            - Employee name and position details
+            - Employment offer and start date
+            - Salary information (monthly and annual)
+            - Benefits package (PTO, bonuses, statutory benefits)
+            - Probationary period details
+            - HR Director signature
+            - Professional formatting
             """)
 
     # Generation section
@@ -175,12 +156,8 @@ def main_page():
         include_metadata = st.checkbox("Include metadata", value=True, help="Include CSV file with generation parameters")
 
     if generate_button:
-        # Map realism level to internal format
-        realism_map = {'Low': 'low', 'Medium': 'medium', 'High': 'high'}
-        realism_internal = realism_map[realism_level]
-
         # Progress tracking
-        st.info(f"Generating {num_docs} {doc_type.lower()}(s) with **{realism_level}** realism...")
+        st.info(f"Generating {num_docs} {doc_type.lower()}(s)...")
         progress_bar = st.progress(0)
         status_text = st.empty()
 
@@ -194,30 +171,33 @@ def main_page():
 
             if doc_type == "MERALCO Bill":
                 filename = f"outputs/meralco_bill_{timestamp}_{i+1:03d}.pdf"
-                generate_meralco_bill(filename, bill_num=i+1, realism_level=realism_internal)
+                generate_meralco_bill(filename, bill_num=i+1)
                 doc_type_short = "MERALCO"
             elif doc_type == "Maynilad Water Bill":
                 filename = f"outputs/maynilad_bill_{timestamp}_{i+1:03d}.pdf"
-                generate_maynilad_bill(filename, bill_num=i+1, realism_level=realism_internal)
+                generate_maynilad_bill(filename, bill_num=i+1)
                 doc_type_short = "MAYNILAD"
             elif doc_type == "Globe Telecom Bill":
                 filename = f"outputs/globe_bill_{timestamp}_{i+1:03d}.pdf"
-                generate_globe_bill(filename, bill_num=i+1, realism_level=realism_internal)
+                generate_globe_bill(filename, bill_num=i+1)
                 doc_type_short = "GLOBE"
             elif doc_type == "BPI Bank Statement":
                 filename = f"outputs/bpi_statement_{timestamp}_{i+1:03d}.pdf"
-                generate_bpi_statement(filename, statement_num=i+1, realism_level=realism_internal)
+                generate_bpi_statement(filename, statement_num=i+1)
                 doc_type_short = "BPI"
-            else:  # BIR Tax Exemption Certificate
+            elif doc_type == "BIR Tax Exemption Certificate":
                 filename = f"outputs/bir_certificate_{timestamp}_{i+1:03d}.pdf"
-                generate_bir_certificate(filename, cert_num=i+1, realism_level=realism_internal)
+                generate_bir_certificate(filename, cert_num=i+1)
                 doc_type_short = "BIR"
+            else:  # Certificate of Employment
+                filename = f"outputs/coe_{timestamp}_{i+1:03d}.pdf"
+                generate_coe(filename, cert_num=i+1)
+                doc_type_short = "COE"
 
             generated_files.append(filename)
             metadata.append({
                 'filename': os.path.basename(filename),
                 'doc_type': doc_type_short,
-                'realism_level': realism_level,
                 'generated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             })
 
@@ -268,7 +248,6 @@ def main_page():
         with st.expander("📋 Generation Summary"):
             st.write(f"**Document Type:** {doc_type}")
             st.write(f"**Quantity:** {num_docs}")
-            st.write(f"**Realism Level:** {realism_level}")
             st.write(f"**Generated at:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
             st.write(f"**Files:**")
             for f in generated_files:
@@ -279,23 +258,23 @@ def main_page():
     with st.expander("ℹ️ How to Use This App"):
         st.write("""
         ### Purpose
-        This application generates fake documents that mimic real utility bills, telecom bills, and bank statements.
-        Use these documents to:
+        This application generates fake documents that mimic real utility bills, telecom bills, bank statements,
+        tax certificates, and employment documents. Use these documents to:
         - Benchmark your AI fraud detection system
         - Test document verification algorithms
         - Train machine learning models
         - Evaluate OCR accuracy
 
-        ### Realism Levels
-        - **High Realism**: Documents appear very authentic with only subtle inconsistencies (e.g., minor calculation errors)
-        - **Medium Realism**: Documents have moderate inconsistencies that might be detected by careful review
-        - **Low Realism**: Documents have obvious red flags and errors, easier for fraud detection systems to catch
+        ### Document Quality
+        All documents are generated with consistent, high-quality output that closely mimics authentic documents.
+        This allows you to test your fraud detection system's ability to identify fake documents based on
+        subtle inconsistencies or other detection methods.
 
         ### Best Practices
-        1. Generate a mix of realism levels to test your system's sensitivity
-        2. Use the metadata CSV to track which documents should be flagged as fake
-        3. Compare detection rates across different realism levels
-        4. Combine with real documents (if available) for comprehensive testing
+        1. Use the metadata CSV to track which documents are fake in your test dataset
+        2. Test various document types to ensure comprehensive coverage
+        3. Combine with real documents (if available) for comprehensive testing
+        4. Generate multiple batches to test consistency of your detection system
 
         ### Ethical Use
         - ✅ Use for testing and benchmarking fraud detection systems
@@ -345,12 +324,20 @@ def main_page():
         - Regional Director signature
         - 5-year validity period
 
-        ### Fraud Indicators
-        Depending on the realism level, documents may contain:
-        - Mathematical calculation errors
-        - Date inconsistencies
-        - Format variations
-        - Missing or incorrect details
+        **Certificate of Employment:**
+        - Professional company letterhead
+        - Employee and position information
+        - Salary and benefits breakdown
+        - Employment dates and probation period
+        - HR Director signature
+        - Offer letter format
+
+        ### Document Characteristics
+        All documents are generated with realistic details including:
+        - Authentic formatting and layouts
+        - Realistic calculations and amounts
+        - Appropriate branding and logos
+        - Consistent dates and information
         """)
 
 if __name__ == "__main__":

@@ -256,14 +256,13 @@ class BIRGenerator(DocumentGenerator):
         return filename
 
 
-def generate_bir_certificate(filename, cert_num=1, realism_level='high'):
+def generate_bir_certificate(filename, cert_num=1):
     """
     Generate a BIR Certificate of Tax Exemption.
 
     Args:
         filename: Output PDF filename
         cert_num: Certificate number (for unique identifiers)
-        realism_level: 'high', 'medium', or 'low'
     """
-    generator = BIRGenerator(realism_level=realism_level)
+    generator = BIRGenerator()
     return generator.generate_bill(filename, cert_num)

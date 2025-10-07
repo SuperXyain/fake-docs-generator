@@ -11,14 +11,8 @@ fake = Faker('en_PH')
 class DocumentGenerator:
     """Base class for document generators."""
 
-    def __init__(self, realism_level='high'):
-        """
-        Initialize document generator.
-
-        Args:
-            realism_level: 'high', 'medium', or 'low' - controls how realistic the document is
-        """
-        self.realism_level = realism_level
+    def __init__(self):
+        """Initialize document generator."""
         self.fake = fake
 
     def get_random_name(self):
@@ -54,44 +48,11 @@ class DocumentGenerator:
         start_day = random.randint(1, 10)
 
         start_date = datetime(year, month, start_day)
-
-        # Add realistic variation based on realism level
-        if self.realism_level == 'high':
-            end_date = start_date + timedelta(days=days)
-            due_date = end_date + timedelta(days=random.randint(10, 12))
-        elif self.realism_level == 'medium':
-            # Slight inconsistency in billing period
-            end_date = start_date + timedelta(days=random.randint(days-2, days+2))
-            due_date = end_date + timedelta(days=random.randint(8, 14))
-        else:  # low realism
-            # Obvious inconsistencies
-            end_date = start_date + timedelta(days=random.randint(20, 40))
-            due_date = end_date + timedelta(days=random.randint(5, 20))
+        end_date = start_date + timedelta(days=days)
+        due_date = end_date + timedelta(days=random.randint(10, 12))
 
         return start_date, end_date, due_date
 
-    def introduce_calculation_error(self, correct_value, error_type='none'):
-        """
-        Optionally introduce calculation errors for testing.
-
-        Args:
-            correct_value: The correct calculated value
-            error_type: 'none', 'small', 'medium', 'large'
-
-        Returns:
-            Value with or without error
-        """
-        if error_type == 'none':
-            return correct_value
-        elif error_type == 'small':
-            # Off by a few pesos
-            return correct_value + random.uniform(-5, 5)
-        elif error_type == 'medium':
-            # Off by 1-5%
-            return correct_value * random.uniform(0.95, 1.05)
-        else:  # large
-            # Obviously wrong
-            return correct_value * random.uniform(0.7, 1.3)
 
     def format_currency(self, amount):
         """Format amount as Philippine Peso."""

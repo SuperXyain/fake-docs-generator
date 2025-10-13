@@ -77,7 +77,6 @@ def generate_random_transactions(num_transactions=10, starting_balance=50000):
     transactions = []
     balance = starting_balance
 
-    # Transaction types
     debit_types = [
         "ATM WITHDRAWAL",
         "ONLINE PURCHASE",
@@ -98,15 +97,12 @@ def generate_random_transactions(num_transactions=10, starting_balance=50000):
         "REFUND"
     ]
 
-    # Generate transactions over the past month
     current_date = datetime.now()
 
     for i in range(num_transactions):
-        # Random date within the month
         days_ago = random.randint(1, 30)
         trans_date = current_date - timedelta(days=days_ago)
 
-        # Decide if debit or credit (70% debit, 30% credit)
         is_debit = random.random() < 0.7
 
         if is_debit:
@@ -116,7 +112,6 @@ def generate_random_transactions(num_transactions=10, starting_balance=50000):
             credit = 0
             balance -= amount
 
-            # Add merchant/payee info for some types
             if "PURCHASE" in trans_type:
                 merchant = random.choice(["SHOPEE", "LAZADA", "SM STORE", "GRAB", "FOODPANDA"])
                 description = f"{trans_type} - {merchant}"
@@ -141,10 +136,8 @@ def generate_random_transactions(num_transactions=10, starting_balance=50000):
             'balance': round(balance, 2)
         })
 
-    # Sort by date (oldest first)
     transactions.sort(key=lambda x: datetime.strptime(x['date'], '%m/%d/%Y'))
 
-    # Recalculate balances to be accurate
     balance = starting_balance
     for trans in transactions:
         if trans['debit'] > 0:

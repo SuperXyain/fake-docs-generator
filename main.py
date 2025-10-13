@@ -6,9 +6,8 @@ from datetime import datetime
 import io
 import csv
 
-from generators import generate_meralco_bill, generate_bpi_statement, generate_maynilad_bill, generate_globe_bill, generate_bir_certificate, generate_coe
+from generators import generate_meralco_bill, generate_bpi_statement, generate_maynilad_bill, generate_globe_bill, generate_bir_certificate, generate_coe, generate_passport
 
-# Ensure output directory exists
 os.makedirs('outputs', exist_ok=True)
 
 def create_zip_file(files):
@@ -29,14 +28,12 @@ def create_metadata_csv(metadata):
     return csv_buffer.getvalue()
 
 def main_page():
-    # Header
     st.title('🔧 Fake Docs Generator for Testing')
     st.write('Generate realistic fake documents to benchmark AI fraud detection systems')
     st.warning('⚠️ **FOR TESTING ONLY** - This app generates fake documents for AI fraud detection benchmarking. Do not use for malicious purposes.', icon="⚠️")
 
     st.divider()
 
-    # Sidebar for configuration
     with st.sidebar:
         st.header("⚙️ Configuration")
         st.info("""
@@ -47,14 +44,13 @@ def main_page():
         All documents are generated with consistent, high-quality output.
         """)
 
-    # Main content
     col1, col2 = st.columns(2)
 
     with col1:
         st.header("📄 Document Type")
         doc_type = st.selectbox(
             "Select Document Type",
-            ("MERALCO Bill", "Maynilad Water Bill", "Globe Telecom Bill", "BPI Bank Statement", "BIR Tax Exemption Certificate", "Certificate of Employment"),
+            ("MERALCO Bill", "Maynilad Water Bill", "Globe Telecom Bill", "BPI Bank Statement", "BIR Tax Exemption Certificate", "Certificate of Employment", "Philippine Passport"),
             key="main_selectbox"
         )
 
@@ -70,7 +66,6 @@ def main_page():
 
     st.divider()
 
-    # Document-specific information
     if doc_type == "MERALCO Bill":
         with st.expander("ℹ️ About MERALCO Bills"):
             st.write("""
@@ -131,7 +126,7 @@ def main_page():
             - Regional Director signature
             - Official BIR letterhead and formatting
             """)
-    else:  # Certificate of Employment
+    elif doc_type == "Certificate of Employment":
         with st.expander("ℹ️ About Certificate of Employment"):
             st.write("""
             **Generated COE documents include:**
@@ -144,8 +139,22 @@ def main_page():
             - HR Director signature
             - Professional formatting
             """)
+    else:  # Philippine Passport
+        with st.expander("ℹ️ About Philippine Passport"):
+            st.write("""
+            **Generated Philippine Passports include:**
+            - Philippine flag and official headers
+            - Passport number (P + 7 digits + letter format)
+            - Personal information (surname, given names)
+            - Date of birth and place of birth
+            - Sex and nationality fields
+            - Date of issue and expiry (10-year validity)
+            - Issuing authority (DFA Manila)
+            - Machine Readable Zone (MRZ) with check digits
+            - Clear TEST DOCUMENT watermarks
+            - Professional passport-style layout
+            """)
 
-    # Generation section
     st.divider()
     st.header("🚀 Generate Documents")
 
@@ -156,7 +165,6 @@ def main_page():
         include_metadata = st.checkbox("Include metadata", value=True, help="Include CSV file with generation parameters")
 
     if generate_button:
-        # Progress tracking
         st.info(f"Generating {num_docs} {doc_type.lower()}(s)...")
         progress_bar = st.progress(0)
         status_text = st.empty()
@@ -165,7 +173,6 @@ def main_page():
         metadata = []
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
 
-        # Generate documents
         for i in range(num_docs):
             status_text.text(f"Generating document {i+1} of {num_docs}...")
 
@@ -189,10 +196,14 @@ def main_page():
                 filename = f"outputs/bir_certificate_{timestamp}_{i+1:03d}.pdf"
                 generate_bir_certificate(filename, cert_num=i+1)
                 doc_type_short = "BIR"
-            else:  # Certificate of Employment
+            elif doc_type == "Certificate of Employment":
                 filename = f"outputs/coe_{timestamp}_{i+1:03d}.pdf"
                 generate_coe(filename, cert_num=i+1)
                 doc_type_short = "COE"
+            else:  # Philippine Passport
+                filename = f"outputs/passport_{timestamp}_{i+1:03d}.pdf"
+                generate_passport(filename, passport_num=i+1)
+                doc_type_short = "PASSPORT"
 
             generated_files.append(filename)
             metadata.append({
@@ -206,12 +217,10 @@ def main_page():
         status_text.text("✅ Generation complete!")
         st.success(f"Successfully generated {num_docs} document(s)!")
 
-        # Create download section
         st.divider()
         st.header("📥 Download")
 
         if num_docs == 1:
-            # Single file download
             with open(generated_files[0], 'rb') as f:
                 st.download_button(
                     label=f"⬇️ Download {os.path.basename(generated_files[0])}",
@@ -221,7 +230,6 @@ def main_page():
                     use_container_width=True
                 )
         else:
-            # Multiple files - create ZIP
             zip_buffer = create_zip_file(generated_files)
             zip_filename = f"{doc_type_short.lower()}_batch_{timestamp}.zip"
 
@@ -233,7 +241,6 @@ def main_page():
                 use_container_width=True
             )
 
-        # Metadata download
         if include_metadata:
             csv_data = create_metadata_csv(metadata)
             st.download_button(
@@ -244,7 +251,6 @@ def main_page():
                 use_container_width=True
             )
 
-        # Display summary
         with st.expander("📋 Generation Summary"):
             st.write(f"**Document Type:** {doc_type}")
             st.write(f"**Quantity:** {num_docs}")
@@ -253,7 +259,6 @@ def main_page():
             for f in generated_files:
                 st.write(f"- {os.path.basename(f)}")
 
-    # Information footer
     st.divider()
     with st.expander("ℹ️ How to Use This App"):
         st.write("""
@@ -331,6 +336,17 @@ def main_page():
         - Employment dates and probation period
         - HR Director signature
         - Offer letter format
+
+        **Philippine Passport:**
+        - Philippine flag and official headers
+        - Realistic passport number format (P + 7 digits + letter)
+        - Complete personal information fields
+        - Date of birth, place of birth, sex, nationality
+        - Issue and expiry dates (10-year validity)
+        - Issuing authority information
+        - Machine Readable Zone (MRZ) with proper check digits
+        - TEST DOCUMENT watermarks for safety
+        - Passport-sized landscape A5 format
 
         ### Document Characteristics
         All documents are generated with realistic details including:
